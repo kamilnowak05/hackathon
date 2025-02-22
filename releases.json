@@ -1,0 +1,18 @@
+{
+    "versions": [
+        {
+            "version": "0.0.1",
+            "minAppVersion": "1.0.0",
+            "downloadUrl": "https://github.com/twoja-nazwa/obsidian-twoj-plugin/releases/download/0.0.1/main.js",
+            "manifest": {
+                "author": "Arti8",
+                "description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+                "id": "elevenlabs-notes",
+                "isDesktopOnly": false,
+                "minAppVersion": "1.0.0",
+                "name": "Elevenlabs Notes Plugin",
+                "version": "0.0.1"
+            }
+        }
+    ]
+}
