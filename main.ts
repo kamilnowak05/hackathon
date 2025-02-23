@@ -1,7 +1,4 @@
 import { Conversation } from "@11labs/client";
-// # import elevenlabs revers
-
-
 import {
 	App,
 	Editor,
@@ -11,17 +8,47 @@ import {
 	Plugin,
 	PluginSettingTab,
 	Setting,
-    TFile
+	TFile,
 } from "obsidian";
+
+/**
+ * Gets the path of an existing note
+ */
+export function getNotePath(app: App, title: string): string | null {
+	const fileName = title.replace(/[/\\?%*:|"<>]/g, "-").trim() + ".md";
+	const files = app.vault.getFiles();
+	const file = files.find((f) => f.name === fileName);
+	return file ? file.path : null;
+}
+
+/**
+ * Reads the content of a note
+ * @param app - Obsidian App instance
+ * @param title - Note title
+ * @returns Promise<string | null> - Note content or null if not found
+ */
+export async function readNote(
+	app: App,
+	title: string
+): Promise<string | null> {
+	const path = getNotePath(app, title);
+	if (!path) return null;
+
+	const file = app.vault.getAbstractFileByPath(path);
+	if (file instanceof TFile) {
+		return await app.vault.read(file);
+	}
+	return null;
+}
 
 // Remember to rename these classes and interfaces!
 
 interface MyPluginSettings {
-	mySetting: string;
+	agentId: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: "default",
+	agentId: "",
 };
 
 export default class MyPlugin extends Plugin {
@@ -36,7 +63,7 @@ export default class MyPlugin extends Plugin {
 			"Sample Plugin",
 			(evt: MouseEvent) => {
 				// Called when the user clicks the icon.
-				new Notice("This is a notice!");
+				new SampleModal(this.app, this.settings).open();
 			}
 		);
 		// Perform additional things with the ribbon
@@ -48,39 +75,10 @@ export default class MyPlugin extends Plugin {
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: "open-sample-modal-simple",
-			name: "Open sample modal (simple)",
+			id: "open-voice-ai-agent",
+			name: "Open ElevenLabs Conversational AI",
 			callback: () => {
-				new SampleModal(this.app).open();
-			},
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: "sample-editor-command",
-			name: "Sample editor command",
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection("Sample Editor Command");
-			},
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: "open-sample-modal-complex",
-			name: "Open sample modal (complex)",
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
+				new SampleModal(this.app, this.settings).open();
 			},
 		});
 
@@ -114,51 +112,22 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-/**
- * Gets the path of an existing note
- */
-export function getNotePath(
-    app: App,
-    title: string
-  ): string | null {
-    const fileName = title.replace(/[/\\?%*:|"<>]/g, '-').trim() + '.md';
-    const files = app.vault.getFiles();
-    const file = files.find(f => f.name === fileName);
-    return file ? file.path : null;
-  }
-  
-  /**
-   * Reads the content of a note
-   * @param app - Obsidian App instance
-   * @param title - Note title
-   * @returns Promise<string | null> - Note content or null if not found
-   */
-  export async function readNote(
-    app: App,
-    title: string
-  ): Promise<string | null> {
-    const path = getNotePath(app, title);
-    if (!path) return null;
-  
-    const file = app.vault.getAbstractFileByPath(path);
-    if (file instanceof TFile) {
-        console.log(file.path)
-        console.log(file.name)
-      return await app.vault.read(file);
-    }
-    return null;
-  }
-
 class SampleModal extends Modal {
-	constructor(app: App) {
+	private conversation: Conversation | null;
+	private settings: MyPluginSettings;
+
+	constructor(app: App, settings: MyPluginSettings) {
 		super(app);
+		this.settings = settings;
+		this.conversation = null;
 	}
 
 	async onOpen() {
-		const { contentEl } = this;
+		const { contentEl, conversation } = this;
 		contentEl.setText("Woah!");
-		const conversation = await Conversation.startSession({
-			agentId: "WsMrvhr8SLd3Lf7IZoIk",
+		this.conversation = await Conversation.startSession({
+			// agentId: "hVo4wiqvqg0jPtI4tiTp",
+			agentId: this.settings.agentId,
 			clientTools: {
 				saveNote: async ({ message }) => {
 					console.log(message);
@@ -177,10 +146,11 @@ class SampleModal extends Modal {
 		});
 	}
 
-
 	async onClose() {
 		const { contentEl } = this;
-		// await conversation.endSession();
+		if (this.conversation) {
+			await this.conversation.endSession();
+		}
 		contentEl.empty();
 	}
 }
@@ -199,14 +169,14 @@ class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Setting #1")
-			.setDesc("It's a secret")
+			.setName("ElevenLabs Agent Id")
+			.setDesc("ElevenLabs Agent Id")
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter your secret")
-					.setValue(this.plugin.settings.mySetting)
+					.setPlaceholder("Enter your Agent Id")
+					.setValue(this.plugin.settings.agentId)
 					.onChange(async (value) => {
-						this.plugin.settings.mySetting = value;
+						this.plugin.settings.agentId = value;
 						await this.plugin.saveSettings();
 					})
 			);
