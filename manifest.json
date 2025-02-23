@@ -1,5 +1,5 @@
 {
-	"id": "elevenlabs_onversational_ai",
+	"id": "elevenlabs-conversational-ai",
 	"name": "ElevenLabs Conversational AI Plugin",
 	"version": "0.0.4",
 	"minAppVersion": "0.15.0",

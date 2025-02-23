@@ -7,10 +7,10 @@
             "manifest": {
                 "author": "Arti8",
                 "description": "ElevenLabs Conversational AI Plugin for Obsidian",
-                "id": "elevenlabs_onversational_ai",
+                "id": "elevenlabs-conversational-ai",
                 "isDesktopOnly": false,
                 "minAppVersion": "1.0.0",
-                "name": "ElevenLabs Conversational AI Plugin",
+                "name": "obsidian-elevenlabs-conversational-ai-plugin",
                 "version": "0.0.4"
             }
         }
