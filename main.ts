@@ -1,15 +1,5 @@
 import { Conversation } from "@11labs/client";
-import {
-	App,
-	Editor,
-	MarkdownView,
-	Modal,
-	Notice,
-	Plugin,
-	PluginSettingTab,
-	Setting,
-	TFile,
-} from "obsidian";
+import { App, Modal, Plugin, PluginSettingTab, Setting, TFile } from "obsidian";
 
 /**
  * Gets the path of an existing note
@@ -59,7 +49,7 @@ export default class MyPlugin extends Plugin {
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
-			"dice",
+			"microphone",
 			"Sample Plugin",
 			(evt: MouseEvent) => {
 				// Called when the user clicks the icon.
@@ -68,10 +58,6 @@ export default class MyPlugin extends Plugin {
 		);
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass("my-plugin-ribbon-class");
-
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText("Status Bar Text");
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -123,27 +109,112 @@ class SampleModal extends Modal {
 	}
 
 	async onOpen() {
-		const { contentEl, conversation } = this;
-		contentEl.setText("Woah!");
-		this.conversation = await Conversation.startSession({
-			// agentId: "hVo4wiqvqg0jPtI4tiTp",
-			agentId: this.settings.agentId,
-			clientTools: {
-				saveNote: async ({ message }) => {
-					console.log(message);
-					await this.app.vault.create("New Note.md", message);
-				},
-				getNote: async ({ noteName }) => {
-					console.log(noteName);
-					const content = await readNote(this.app, noteName);
-					if (content) {
-						console.log(content);
-						return content;
-					}
-					return "";
-				},
-			},
+		const { contentEl } = this;
+		contentEl.empty();
+
+		// Set up the modal content
+		contentEl.createEl("h1", {
+			text: "ElevenLabs Conversational AI",
+			attr: { style: "text-align: center;" },
 		});
+
+		const buttonContainer = contentEl.createDiv({
+			attr: { style: "margin-bottom: 20px; text-align: center;" },
+		});
+
+		const startButton = buttonContainer.createEl("button", {
+			text: "Start Conversation",
+			attr: { style: "padding: 10px 20px; margin: 5px;" },
+		});
+		const stopButton = buttonContainer.createEl("button", {
+			text: "Stop Conversation",
+			attr: { style: "padding: 10px 20px; margin: 5px;", disabled: true },
+		});
+
+		const statusContainer = contentEl.createDiv({
+			attr: { style: "font-size: 18px; text-align: center;" },
+		});
+		statusContainer.createEl("p", { text: "Status: " }).createEl("span", {
+			text: "Disconnected",
+			attr: { id: "connectionStatus" },
+		});
+		statusContainer.createEl("p", { text: "Agent is " }).createEl("span", {
+			text: "listening",
+			attr: { id: "agentStatus" },
+		});
+
+		const connectionStatus = contentEl.querySelector("#connectionStatus");
+		const agentStatus = contentEl.querySelector("#agentStatus");
+
+		const startConversation = async () => {
+			try {
+				// Request microphone permission
+				await navigator.mediaDevices.getUserMedia({ audio: true });
+
+				// Start the conversation
+				this.conversation = await Conversation.startSession({
+					agentId: this.settings.agentId,
+					clientTools: {
+						saveNote: async ({ title, message }) => {
+							console.log(message);
+							await this.app.vault.create(`${title}.md`, message);
+						},
+						getNote: async ({ noteName }) => {
+							console.log(noteName);
+							const content = await readNote(this.app, noteName);
+							if (content) {
+								console.log(content);
+								return content;
+							}
+							return "";
+						},
+                        getListOfNotes: async () => {
+                            const files = this.app.vault.getFiles();
+                            const notes = files.map(f => f.name.replace(".md", "")).join(", ");
+                            console.log(notes);
+                            return notes;
+                        }
+					},
+					onConnect: () => {
+						if (connectionStatus) {
+							connectionStatus.textContent = "Connected";
+						}
+						startButton.disabled = true;
+						stopButton.disabled = false;
+					},
+					onDisconnect: () => {
+						if (connectionStatus) {
+							connectionStatus.textContent = "Disconnected";
+						}
+						startButton.disabled = false;
+						stopButton.disabled = true;
+					},
+					onError: (error) => {
+						console.error("Error:", error);
+					},
+					onModeChange: (mode) => {
+						if (agentStatus) {
+							agentStatus.textContent =
+								mode.mode === "speaking"
+									? "speaking"
+									: "listening";
+						}
+					},
+				});
+			} catch (error) {
+				console.error("Failed to start conversation:", error);
+			}
+		};
+
+		const stopConversation = async () => {
+			if (this.conversation) {
+				await this.conversation.endSession();
+				this.conversation = null;
+			}
+		};
+
+		startButton.addEventListener("click", startConversation);
+		stopButton.addEventListener("click", stopConversation);
 	}
 
 	async onClose() {
