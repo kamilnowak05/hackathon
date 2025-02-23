@@ -1,17 +1,17 @@
 {
     "versions": [
         {
-            "version": "0.0.3",
+            "version": "0.0.4",
             "minAppVersion": "1.0.0",
-            "downloadUrl": "https://github.com/twoja-nazwa/obsidian-twoj-plugin/releases/download/0.0.1/main.js",
+            "downloadUrl": "https://github.com/Arti8AI/obsidian_elevenlabs_conversational_ai/releases/download/0.0.4/elevenlabs_conversational_ai-0.0.4.zip",
             "manifest": {
                 "author": "Arti8",
-                "description": "This is a sample plugin for Obsidian (https://obsidian.md)",
-                "id": "elevenlabs-notes",
+                "description": "ElevenLabs Conversational AI Plugin for Obsidian",
+                "id": "elevenlabs_onversational_ai",
                 "isDesktopOnly": false,
                 "minAppVersion": "1.0.0",
-                "name": "Elevenlabs Notes Plugin",
-                "version": "0.0.3"
+                "name": "ElevenLabs Conversational AI Plugin",
+                "version": "0.0.4"
             }
         }
     ]

@@ -31,18 +31,16 @@ export async function readNote(
 	return null;
 }
 
-// Remember to rename these classes and interfaces!
-
-interface MyPluginSettings {
+interface ElevenLabsConversationalAISettings {
 	agentId: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: ElevenLabsConversationalAISettings = {
 	agentId: "",
 };
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class ElevenLabsConversationalAIPlugin extends Plugin {
+	settings: ElevenLabsConversationalAISettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -50,10 +48,10 @@ export default class MyPlugin extends Plugin {
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"microphone",
-			"Sample Plugin",
+			"ElevenLabsConversationalAI Plugin",
 			(evt: MouseEvent) => {
 				// Called when the user clicks the icon.
-				new SampleModal(this.app, this.settings).open();
+				new ElevenLabsConversationalAIModal(this.app, this.settings).open();
 			}
 		);
 		// Perform additional things with the ribbon
@@ -64,23 +62,12 @@ export default class MyPlugin extends Plugin {
 			id: "open-voice-ai-agent",
 			name: "Open ElevenLabs Conversational AI",
 			callback: () => {
-				new SampleModal(this.app, this.settings).open();
+				new ElevenLabsConversationalAIModal(this.app, this.settings).open();
 			},
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-			console.log("click", evt);
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
-		);
+		this.addSettingTab(new ElevenLabsConversationalAISettingTab(this.app, this));
 	}
 
 	onunload() {}
@@ -98,11 +85,11 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
+class ElevenLabsConversationalAIModal extends Modal {
 	private conversation: Conversation | null;
-	private settings: MyPluginSettings;
+	private settings: ElevenLabsConversationalAISettings;
 
-	constructor(app: App, settings: MyPluginSettings) {
+	constructor(app: App, settings: ElevenLabsConversationalAISettings) {
 		super(app);
 		this.settings = settings;
 		this.conversation = null;
@@ -166,7 +153,7 @@ class SampleModal extends Modal {
 								console.log(content);
 								return content;
 							}
-							return "";
+							return "Note not found";
 						},
                         getListOfNotes: async () => {
                             const files = this.app.vault.getFiles();
@@ -226,10 +213,10 @@ class SampleModal extends Modal {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+class ElevenLabsConversationalAISettingTab extends PluginSettingTab {
+	plugin: ElevenLabsConversationalAIPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: ElevenLabsConversationalAIPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

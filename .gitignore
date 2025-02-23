@@ -1,6 +1,10 @@
 # Env variables
 data.json
 
+# Build files
+dist/
+main.js
+
 # Logs
 logs
 *.log
