@@ -1,5 +1,5 @@
 {
-	"name": "ai_notes",
+	"name": "elevenlabs_onversational_ai",
 	"version": "0.0.4",
 	"description": "ElevenLabs Conversational AI Plugin for Obsidian",
 	"main": "main.js",
